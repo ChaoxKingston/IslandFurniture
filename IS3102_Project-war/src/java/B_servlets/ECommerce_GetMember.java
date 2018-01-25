@@ -8,6 +8,7 @@ package B_servlets;
 import HelperClasses.Member;
 import java.io.IOException;
 import java.io.PrintWriter;
+import static java.lang.System.out;
 import javax.persistence.NoResultException;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -24,8 +25,9 @@ import javax.ws.rs.core.Response;
 
 /**
  *
- * @author iluv_
+ * @author Zamiel Chia
  */
+@WebServlet(name = "ECommerce_GetMember", urlPatterns = {"/ECommerce_GetMember"})
 public class ECommerce_GetMember extends HttpServlet {
 
     /**
@@ -41,14 +43,14 @@ public class ECommerce_GetMember extends HttpServlet {
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
         HttpSession session = request.getSession();
+        PrintWriter out = response.getWriter();
         
         try 
         { 
-            Member member = getMember((String) session.getAttribute("memberEmail"));
+            Member member = retrieveMember((String)session.getAttribute("memberEmail"));
             
             // Member Details 
             session.setAttribute("member", member);
-            session.setAttribute("memberID", member.getId());
             session.setAttribute("memberName", member.getName());
             
             response.sendRedirect("/IS3102_Project-war/B/SG/memberProfile.jsp");
@@ -56,25 +58,25 @@ public class ECommerce_GetMember extends HttpServlet {
             out.println("Failed to find member.");
             ex.printStackTrace();
         }
-        
-        public Member getMember(String email) {
-            Client client = ClientBuilder.newClient();
-            
-        }
-        
-//        try (PrintWriter out = response.getWriter()) {
-//            /* TODO output your page here. You may use following sample code. */
-//            out.println("<!DOCTYPE html>");
-//            out.println("<html>");
-//            out.println("<head>");
-//            out.println("<title>Servlet ECommerce_GetMember</title>");            
-//            out.println("</head>");
-//            out.println("<body>");
-//            out.println("<h1>Servlet ECommerce_GetMember at " + request.getContextPath() + "</h1>");
-//            out.println("</body>");
-//            out.println("</html>");
-//        }
     }
+    
+        
+    public Member retrieveMember(String email) {
+            Client client = ClientBuilder.newClient();
+            WebTarget target = client
+                    .target("http://localhost:8080/IS3102_WebService-Student/webresources/entity.memberentity").path("getmember")
+                    .queryParam("email",email);
+            Invocation.Builder invocationBuilder = target.request(MediaType.APPLICATION_JSON);
+            Response response = invocationBuilder.get();
+            System.out.println("Status:" + response.getStatus());
+            
+            if (response.getStatus() != 200) {
+                return null;
+            }
+            
+            Member member = response.readEntity(Member.class);
+            return member;
+        }
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
     /**
@@ -114,5 +116,4 @@ public class ECommerce_GetMember extends HttpServlet {
     public String getServletInfo() {
         return "Short description";
     }// </editor-fold>
-
 }
