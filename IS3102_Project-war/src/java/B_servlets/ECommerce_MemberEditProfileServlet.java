@@ -50,7 +50,7 @@ public class ECommerce_MemberEditProfileServlet extends HttpServlet {
         
         try 
         {
-        String email = (String) session.getAttribute("name");
+        String email = (String) session.getAttribute("memberEmail");
         member.setEmail(email);
         
         /* server-side verification, so no funny business */
@@ -139,18 +139,18 @@ public class ECommerce_MemberEditProfileServlet extends HttpServlet {
         {
             Client client = ClientBuilder.newClient();
             WebTarget target = client
-                    .target("http://localhost:8080/IS3102_WebService-Student/webresources/entity.memberentity")
-                    .path("updatemember")
+                    .target("http://localhost:8080/IS3102_WebService-Student/webresources/entity.memberentity").path("updatemember")
                     .queryParam("password", password);
             
             Invocation.Builder invocationBuilder = target.request(MediaType.APPLICATION_JSON);
             Response response = invocationBuilder.put(Entity.entity(member, MediaType.APPLICATION_JSON));
+            System.out.println("status: " + response.getStatus());
             
             if (response.getStatus() == 200) {
                 return "goodMsg=Your profile has been updated.";
             }
             
-            return "errMsg=" + response.getStatus();
+            return "errMsg=IT WONT WORK U NOOB" + response.getStatus();
         } catch (Exception ex) {
             ex.printStackTrace();
             return ex.getMessage();
