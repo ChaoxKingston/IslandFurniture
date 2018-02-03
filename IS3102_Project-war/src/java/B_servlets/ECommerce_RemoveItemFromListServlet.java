@@ -5,8 +5,10 @@
  */
 package B_servlets;
 
+import HelperClasses.ShoppingCartLineItem;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -37,13 +39,35 @@ public class ECommerce_RemoveItemFromListServlet extends HttpServlet {
         PrintWriter out = response.getWriter();
         
         try {
+            String [] selected = request.getParameterValues("delete");
+            // Get the shopping cart
+            ArrayList<ShoppingCartLineItem> shoppingCart;
             
-        } catch(Exception ex) {
-            
-        }
+            if(session.getAttribute("shoppingCart") != null) {
+                // Shopping Cart exists
+                shoppingCart = (ArrayList<ShoppingCartLineItem>)
+                        session.getAttribute("shoppingCart");
                 
+                for (ShoppingCartLineItem item : shoppingCart) {
+                    for (String select : selected) {
+                        if (select.equals(item.getSKU())){
+                            shoppingCart.remove(select);
+                        }
+                    }
+                }
+                
+                session.setAttribute("shoppingCart", shoppingCart);
+                response.sendRedirect("/IS3102_Project-war/B/SG/shoppingCart.jsp"
+                    + "?goodMsg=The selected items have been removed.");
+            } else {
+                response.sendRedirect("/IS3102_Project-war/B/SG/shoppingCart.jsp"
+                    + "?errMsg=There is nothing in the cart.");
+            }   
+        } catch(Exception ex) {
+                response.sendRedirect("/IS3102_Project-war/B/SG/shoppingCart.jsp"
+                    + "?errMsg=" + ex.toString());
+        }     
     }
-
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
     /**
      * Handles the HTTP <code>GET</code> method.
@@ -82,5 +106,4 @@ public class ECommerce_RemoveItemFromListServlet extends HttpServlet {
     public String getServletInfo() {
         return "Short description";
     }// </editor-fold>
-
 }

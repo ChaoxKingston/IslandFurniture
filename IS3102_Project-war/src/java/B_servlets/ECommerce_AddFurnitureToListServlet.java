@@ -75,8 +75,15 @@ public class ECommerce_AddFurnitureToListServlet extends HttpServlet {
                     {
                         if(x.equals(cartItem)) {
                             x.setQuantity(x.getQuantity() + 1);
+                            break;
                         }
                     }
+                    
+                    if (shoppingCart.isEmpty()) {
+                        cartItem.setQuantity(1);
+                        shoppingCart.add(cartItem);
+                    }
+                    
                 } else 
                 {
                     //Create shopping cart
