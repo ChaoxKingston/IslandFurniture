@@ -9,6 +9,7 @@ import HelperClasses.Member;
 import HelperClasses.ShoppingCartLineItem;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -52,6 +53,8 @@ public class ECommerce_AddFurnitureToListServlet extends HttpServlet {
             // RESTFul API not working, so cannot check stock, just the base code.
             if(itemAvaliable(sku)) 
             {
+                ArrayList<ShoppingCartLineItem> shoppingCart;
+                
                 System.out.println("Item is here");
                 // Add item into the cart
                 String memberEmail = (String) session.getAttribute("memberEmail");
@@ -63,15 +66,44 @@ public class ECommerce_AddFurnitureToListServlet extends HttpServlet {
                 cartItem.setName(request.getParameter("name"));
                 cartItem.setPrice(Double.parseDouble(request.getParameter("price")));
                 cartItem.setImageURL(request.getParameter("imageURL"));
+            
+                //Check if both of the item and the cart exists
+                if(session.getAttribute("shoppingcart") != null)
+                {
+                    shoppingCart = (ArrayList<ShoppingCartLineItem>) session.getAttribute("shoppingCart");
+                    for (ShoppingCartLineItem x : shoppingCart ) 
+                    {
+                        if(x.equals(cartItem)) {
+                            x.setQuantity(x.getQuantity() + 1);
+                        }
+                    }
+                } else 
+                {
+                    //Create shopping cart
+                    shoppingCart = new ArrayList();
+                    //Add the object into the shopping cart
+                    cartItem.setQuantity(1);
+                    shoppingCart.add(cartItem);
+                }
+                
+                session.setAttribute("shoppingCart", shoppingCart);
+                response.sendRedirect("/IS3102_Project-war/B/SG/shoppingCart.jsp"
+                        +"?goodMsg=" + cartItem.getName() +"has been added into the cart"
+                        + "successfully.");
             } else 
             {
                 // If there's no stock, tell the user that there's no stock
-                out.println("There's no more stocks. Stocks: " + itemAvaliable(sku));
+//                out.println("There's no more stocks. Stocks: " + itemAvaliable(sku));
+                String category = (String) session.getAttribute("cat");
+                response.sendRedirect("/IS3102_Project-war/B/SG/furnitureCategory.jsp"
+                + "?errMsg=" + "There's no more stocks.");
             }
         } 
         catch (Exception ex)
         {
             out.println(ex.toString());
+            response.sendRedirect("/IS3102_Project-war/B/SG/furnitureCategory.jsp" 
+            + "?errMsg=" + ex.toString());
         }
     }
 
