@@ -128,6 +128,7 @@
                                                             try {
                                                                 if (shoppingCart != null && shoppingCart.size() > 0) {
                                                                     for (ShoppingCartLineItem item : shoppingCart) {
+                                                                        finalPrice += item.getPrice() * item.getQuantity();
                                                         %>
                                                         <tr class="cart_table_item">
                                                             <td class="product-remove">

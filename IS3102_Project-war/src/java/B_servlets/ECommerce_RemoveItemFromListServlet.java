@@ -48,13 +48,13 @@ public class ECommerce_RemoveItemFromListServlet extends HttpServlet {
                 shoppingCart = (ArrayList<ShoppingCartLineItem>)
                         session.getAttribute("shoppingCart");
                 
-                for (ShoppingCartLineItem item : shoppingCart) {
-                    for (String select : selected) {
-                        if (select.equals(item.getSKU())){
-                            shoppingCart.remove(select);
-                        }
+            for (String sku : selected) {
+                for (ShoppingCartLineItem cartItem : shoppingCart) {
+                    if(cartItem.getSKU().equals(sku)){
+                        shoppingCart.remove(cartItem);
                     }
                 }
+            }
                 
                 session.setAttribute("shoppingCart", shoppingCart);
                 response.sendRedirect("/IS3102_Project-war/B/SG/shoppingCart.jsp"
