@@ -5,6 +5,7 @@
  */
 package B_servlets;
 
+import HelperClasses.ShoppingCartLineItem;
 import java.io.IOException;
 import java.io.PrintWriter;
 import javax.servlet.ServletException;
@@ -13,6 +14,8 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import java.util.ArrayList;
+import java.util.regex.Pattern;
 
 /**
  *
@@ -35,7 +38,70 @@ public class ECommerce_PaymentServlet extends HttpServlet {
         response.setContentType("text/html;charset=UTF-8");
         HttpSession session = request.getSession();
         PrintWriter out = response.getWriter();
+        
+        try {
+            String name = "";
+            String creditNo = "";
+            int securityCode;
+            int month; 
+            int year;
+            double finalPrice = 0.00;
+            ArrayList<ShoppingCartLineItem> shoppingCart = null;
+            
+            if (!"".equals(request.getParameter("txtName")) &&
+                    request.getParameter("txtName") != null) {
+                name = request.getParameter("txtName");
+            } else {
+                response.sendRedirect("/IS3102_Project-war/B/SG/shoppingCart.jsp"
+                    + "?errMsg=Please enter a valid name.");
+            }
+            
+             if (!"".equals(request.getParameter("txtSecuritycode")) &&
+                    isNumeric(request.getParameter("txtSecuritycode"))) {
+                securityCode = Integer.parseInt(request.getParameter("txtSecuritycode"));
+            } else {
+                response.sendRedirect("/IS3102_Project-war/B/SG/shoppingCart.jsp"
+                    + "?errMsg=Please enter a valid CVV/CVV2.");
+            }
+             
+            if (isNumeric(request.getParameter("month"))) {
+                month = Integer.parseInt(request.getParameter("month"));
+                
+                if (month < 0 || month > 12) {
+                response.sendRedirect("/IS3102_Project-war/B/SG/shoppingCart.jsp"
+                    + "?errMsg=Invalid Month inserted.");
+                }
+            } else {
+                response.sendRedirect("/IS3102_Project-war/B/SG/shoppingCart.jsp"
+                    + "?errMsg=Invalid Month.");
+            }
+            
+            if (!request.getParameter("year").equals("") && 
+                    isNumeric(request.getParameter("year"))) {
+                // Regex crap for year
+                // https://stackoverflow.com/questions/44601979/regex-to-check-if-string-contains-year
+                if (Pattern.compile("^(19|20)[0-9][0-9]") 
+                        .matcher(request.getParameter("year")).matches()) {
+                    // If the year is proper, set it
+                    year = Integer.parseInt(request.getParameter("year"));
+                } else {
+                    response.sendRedirect("/IS3102_Project-war/B/SG/shoppingCart.jsp"
+                        + "?errMsg=Invalid Year Format (yyyy).");
+                }
+            } else {
+                response.sendRedirect("/IS3102_Project-war/B/SG/shoppingCart.jsp"
+                    + "?errMsg=Invalid Year.");
+            }
+        } catch (Exception ex) {
+            response.sendRedirect("/IS3102_Project-war/B/SG/shoppingCart.jsp"
+                    + "?errMsg=" + ex.toString());
+        }
     }
+    
+    public static boolean isNumeric(String s)
+        {
+          return s.matches("-?\\d+(\\.\\d+)?");
+        }
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
     /**

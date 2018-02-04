@@ -48,21 +48,31 @@ public class ECommerce_RemoveItemFromListServlet extends HttpServlet {
                 shoppingCart = (ArrayList<ShoppingCartLineItem>)
                         session.getAttribute("shoppingCart");
                 
-                ArrayList<ShoppingCartLineItem> itemsToDelete =
-                        new ArrayList();
+//                ArrayList<ShoppingCartLineItem> itemsToDelete =
+//                        new ArrayList();
                 
-                for (ShoppingCartLineItem i : shoppingCart) {
-                    for (String s : selected) {
-                        if (s.equals(i.getSKU())) {
-                           itemsToDelete.add(i);
+//                for (ShoppingCartLineItem i : shoppingCart) {
+//                    for (String s : selected) {
+//                        if (s.equals(i.getSKU())) {
+//                           itemsToDelete.add(i);
+//                        }
+//                    }
+//                }
+//                
+//                for (ShoppingCartLineItem x : itemsToDelete) {
+//                    shoppingCart.remove(x);
+//                }
+
+                for (int x = 0; x < shoppingCart.size(); x++){
+                    ShoppingCartLineItem cartItem = shoppingCart.get(x);
+                    
+                    for (String s : selected){
+                        if(s.equals(cartItem.getSKU())){
+                            shoppingCart.remove(cartItem);
+                            break;
                         }
                     }
                 }
-                
-                for (ShoppingCartLineItem x : itemsToDelete) {
-                    shoppingCart.remove(x);
-                }
-                
                 session.setAttribute("shoppingCart", shoppingCart);
                 response.sendRedirect("/IS3102_Project-war/B/SG/shoppingCart.jsp"
                     + "?goodMsg=The selected items have been removed.");
