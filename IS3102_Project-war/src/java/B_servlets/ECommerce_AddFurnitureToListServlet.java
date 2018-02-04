@@ -71,15 +71,16 @@ public class ECommerce_AddFurnitureToListServlet extends HttpServlet {
                 if(session.getAttribute("shoppingcart") != null)
                 {
                     shoppingCart = (ArrayList<ShoppingCartLineItem>) session.getAttribute("shoppingCart");
-                    for (ShoppingCartLineItem x : shoppingCart ) 
-                    {
-                        if(x.equals(cartItem)) {
-                            x.setQuantity(x.getQuantity() + 1);
-                            break;
-                        }
-                    }
                     
-                    if (shoppingCart.isEmpty()) {
+                    if (shoppingCart.contains(cartItem)) {
+                        for (int x = 0; x < shoppingCart.size(); x++) {
+                            ShoppingCartLineItem currentItem = shoppingCart.get(x);
+                            if (currentItem.equals(cartItem)) {
+                                currentItem.setQuantity(currentItem.getQuantity() + 1);
+                                break;
+                            }
+                        }
+                    } else {
                         cartItem.setQuantity(1);
                         shoppingCart.add(cartItem);
                     }
@@ -100,7 +101,7 @@ public class ECommerce_AddFurnitureToListServlet extends HttpServlet {
             } else 
             {
                 // If there's no stock, tell the user that there's no stock
-//                out.println("There's no more stocks. Stocks: " + itemAvaliable(sku));
+                out.println("There's no more stocks. Stocks: " + itemAvaliable(sku));
                 String category = (String) session.getAttribute("cat");
                 response.sendRedirect("/IS3102_Project-war/B/SG/furnitureCategory.jsp"
                 + "?errMsg=" + "There's no more stocks.");

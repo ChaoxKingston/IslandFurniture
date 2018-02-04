@@ -18,6 +18,12 @@ import java.util.ArrayList;
 import java.util.regex.Pattern;
 import HelperClasses.Member;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.Invocation;
+import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.MediaType;
 
 /**
  *
@@ -47,7 +53,7 @@ public class ECommerce_PaymentServlet extends HttpServlet {
             int securityCode;
             int month; 
             int year;
-            double finalPrice = 0.00;
+            double finalPrice = 0.0;
             long countryID = 0;
             long memberID = 0;
             ArrayList<ShoppingCartLineItem> shoppingCart = null;
@@ -118,6 +124,10 @@ public class ECommerce_PaymentServlet extends HttpServlet {
                     + "?errMsg=Invalid Year.");
             }
             
+            for (ShoppingCartLineItem i : shoppingCart) {
+                finalPrice += (i.getPrice() * i.getQuantity()); 
+            }
+            
             Response paymentRow = createRowAtDB(memberID, finalPrice, countryID);
         } catch (Exception ex) {
             response.sendRedirect("/IS3102_Project-war/B/SG/shoppingCart.jsp"
@@ -130,9 +140,17 @@ public class ECommerce_PaymentServlet extends HttpServlet {
           return s.matches("-?\\d+(\\.\\d+)?");
         }
 
-    public Response createRowAtDB(long memberId, double amountPaid,
+    public Response createRowAtDB(long memberId, double finalPrice,
             long countryId) {
-        return null;
+        Client client = ClientBuilder.newClient();
+        WebTarget target = client
+                .target("http://localhost:8080/IS3102_WebService-Student/webresources/commerce")
+                .path("createECommerceTransactionRecord")
+                .queryParam("finalPrice", finalPrice)
+                .queryParam("countryId", countryId);
+        Invocation.Builder invocationBuilder = target.request(MediaType.APPLICATION_JSON);
+        
+        return invocationBuilder.put(Entity.entity(String.valueOf(memberId), MediaType.APPLICATION_JSON));
     }
     
     public Response addItemToRowAtDB() {

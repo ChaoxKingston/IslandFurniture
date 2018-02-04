@@ -63,16 +63,14 @@ public class ECommerce_RemoveItemFromListServlet extends HttpServlet {
 //                    shoppingCart.remove(x);
 //                }
 
-                for (int x = 0; x < shoppingCart.size(); x++){
-                    ShoppingCartLineItem cartItem = shoppingCart.get(x);
-                    
-                    for (String s : selected){
-                        if(s.equals(cartItem.getSKU())){
-                            shoppingCart.remove(cartItem);
-                            break;
+                for (String s : selected) {
+                    for (int x = 0; x < shoppingCart.size(); x++){
+                        if (shoppingCart.get(x).getSKU().equals(s)){
+                            shoppingCart.remove(x);
                         }
                     }
                 }
+
                 session.setAttribute("shoppingCart", shoppingCart);
                 response.sendRedirect("/IS3102_Project-war/B/SG/shoppingCart.jsp"
                     + "?goodMsg=The selected items have been removed.");
