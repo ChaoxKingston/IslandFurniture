@@ -65,15 +65,16 @@ public class ECommerce_PaymentServlet extends HttpServlet {
                     + "?errMsg=Your session has expired, please login again.");
             }
             
-            if (session.getAttribute("countryID") != null) {
-                countryID = (long) session.getAttribute("countryID");
-            } else {
-                response.sendRedirect("/IS3102_Project-war/B/SG/shoppingCart.jsp"
-                    + "?errMsg=Your session has expired, please login again.");
-            }
+//            if (session.getAttribute("countryID") != null) {
+//                countryID = (long) session.getAttribute("countryID");
+//            } else {
+//                response.sendRedirect("/IS3102_Project-war/B/SG/shoppingCart.jsp"
+//                    + "?errMsg=Your session has expired, please login again.");
+//            }
             
             if((ArrayList<ShoppingCartLineItem>) session.getAttribute("shoppingCart") != null) {
                 shoppingCart = (ArrayList<ShoppingCartLineItem>) session.getAttribute("shoppingCart");
+                countryID = shoppingCart.get(1).getCountryID();
             } else {
                 response.sendRedirect("/IS3102_Project-war/B/SG/shoppingCart.jsp"
                 + "?errMsg=Invalid cart.");

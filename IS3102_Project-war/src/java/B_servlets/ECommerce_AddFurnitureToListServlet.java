@@ -46,6 +46,9 @@ public class ECommerce_AddFurnitureToListServlet extends HttpServlet {
         PrintWriter out = response.getWriter();
         HttpSession session = request.getSession();
         
+        String category = (String) session.getAttribute("cat");
+        long countryID = (long) session.getAttribute("countryID");
+        
         try 
         {
             String sku = (String) request.getParameter("SKU");
@@ -66,6 +69,7 @@ public class ECommerce_AddFurnitureToListServlet extends HttpServlet {
                 cartItem.setName(request.getParameter("name"));
                 cartItem.setPrice(Double.parseDouble(request.getParameter("price")));
                 cartItem.setImageURL(request.getParameter("imageURL"));
+                cartItem.setCountryID(countryID);
             
                 //Check if both of the item and the cart exists
                 if(session.getAttribute("shoppingcart") != null)
@@ -102,7 +106,6 @@ public class ECommerce_AddFurnitureToListServlet extends HttpServlet {
             {
                 // If there's no stock, tell the user that there's no stock
                 out.println("There's no more stocks. Stocks: " + itemAvaliable(sku));
-                String category = (String) session.getAttribute("cat");
                 response.sendRedirect("/IS3102_Project-war/B/SG/furnitureCategory.jsp"
                 + "?errMsg=" + "There's no more stocks.");
             }
@@ -123,7 +126,7 @@ public class ECommerce_AddFurnitureToListServlet extends HttpServlet {
                     .target("http://localhost:8080/IS3102_WebService-Student/webresources/entity.storeentity")
                     .path("getQuantity")
                     .queryParam("SKU", sku)
-                    .queryParam("storeID", 10001);
+                    .queryParam("storeID", 59);
             
             Invocation.Builder invocationBuilder = target.request(MediaType.APPLICATION_JSON);
             Response response = invocationBuilder.get();
