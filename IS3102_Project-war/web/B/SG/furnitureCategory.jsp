@@ -38,7 +38,7 @@
                         </div>
                     </section>
                     <div class="container">
-
+                        <jsp:include page="/displayMessageLong.jsp"/>
                         <div class="row">
                             <div class="col-md-6">
                                 <h2 class="shorter"><strong><%=category%></strong></h2>

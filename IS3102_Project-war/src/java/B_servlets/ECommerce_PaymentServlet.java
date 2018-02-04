@@ -74,7 +74,7 @@ public class ECommerce_PaymentServlet extends HttpServlet {
             
             if((ArrayList<ShoppingCartLineItem>) session.getAttribute("shoppingCart") != null) {
                 shoppingCart = (ArrayList<ShoppingCartLineItem>) session.getAttribute("shoppingCart");
-                countryID = shoppingCart.get(1).getCountryID();
+                countryID = shoppingCart.get(0).getCountryID();
             } else {
                 response.sendRedirect("/IS3102_Project-war/B/SG/shoppingCart.jsp"
                 + "?errMsg=Invalid cart.");
@@ -144,10 +144,18 @@ public class ECommerce_PaymentServlet extends HttpServlet {
                         return;
                     }
                     
+                    long itementityId = Long.parseLong(res.readEntity(String.class));
+                    Response lineItemMemberResp = bindItemToMemberAtDB(itementityId, memberID);
+                    
+                    if (lineItemMemberResp.getStatus() != 200){
+                        response.sendRedirect("/IS3102_Project-war/B/SG/shoppingCart.jsp"
+                            + "?errMsg=" + lineItemMemberResp.readEntity(String.class));
+                        return;
+                    }
                 }
                 
                 session.setAttribute("shoppingCart",
-                        new ArrayList<ShoppingCartLineItem>());
+                        new ArrayList<>());
                 session.setAttribute("transcationId", salesRecordID);
                 response.sendRedirect("/IS3102_Project-war/B/SG/shoppingCart.jsp"
                             + "?goodMsg=Transaction complete.");
@@ -155,6 +163,7 @@ public class ECommerce_PaymentServlet extends HttpServlet {
                 out.println(paymentRow.readEntity(String.class));
             }
         } catch (Exception ex) {
+            ex.printStackTrace();
             response.sendRedirect("/IS3102_Project-war/B/SG/shoppingCart.jsp"
                     + "?errMsg=" + ex.getMessage());
         }
@@ -190,6 +199,19 @@ public class ECommerce_PaymentServlet extends HttpServlet {
         Invocation.Builder invocationBuilder = target.request(MediaType.APPLICATION_JSON);
         
         return invocationBuilder.put(Entity.entity(item, MediaType.APPLICATION_JSON));
+    }
+    
+        public Response bindItemToMemberAtDB(long lineitementityId, 
+            long memberId) {
+        Client client = ClientBuilder.newClient();
+        WebTarget target = client
+                .target("http://localhost:8080/IS3102_WebService-Student/webresources/entity.memberentity")
+                .path("createECommerceLineItemRecord")
+                .queryParam("memberId", memberId);
+        
+        Invocation.Builder invocationBuilder = target.request(MediaType.APPLICATION_JSON);
+        
+        return invocationBuilder.put(Entity.entity(String.valueOf(lineitementityId), MediaType.APPLICATION_JSON));
     }
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
     /**

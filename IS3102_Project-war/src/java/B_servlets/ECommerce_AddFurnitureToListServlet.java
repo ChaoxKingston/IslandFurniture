@@ -118,7 +118,7 @@ public class ECommerce_AddFurnitureToListServlet extends HttpServlet {
         }
     }
 
-    // API not working for now, will fix it asap!! 
+    // fixed bois actually is storeid wrong xd
         public boolean itemAvaliable(String sku)
         {
             Client client = ClientBuilder.newClient();
