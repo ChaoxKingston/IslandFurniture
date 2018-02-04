@@ -16,6 +16,8 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.util.ArrayList;
 import java.util.regex.Pattern;
+import HelperClasses.Member;
+import javax.ws.rs.core.Response;
 
 /**
  *
@@ -40,17 +42,40 @@ public class ECommerce_PaymentServlet extends HttpServlet {
         PrintWriter out = response.getWriter();
         
         try {
-            String name = "";
+            String cardName = "";
             String creditNo = "";
             int securityCode;
             int month; 
             int year;
             double finalPrice = 0.00;
+            long countryID = 0;
+            long memberID = 0;
             ArrayList<ShoppingCartLineItem> shoppingCart = null;
+            
+            if(session.getAttribute("memberID") != null) {
+                memberID = (long) session.getAttribute("memberID");
+            } else {
+                response.sendRedirect("/IS3102_Project-war/B/SG/shoppingCart.jsp"
+                    + "?errMsg=Your session has expired, please login again.");
+            }
+            
+            if (session.getAttribute("countryID") != null) {
+                countryID = (long) session.getAttribute("countryID");
+            } else {
+                response.sendRedirect("/IS3102_Project-war/B/SG/shoppingCart.jsp"
+                    + "?errMsg=Your session has expired, please login again.");
+            }
+            
+            if((ArrayList<ShoppingCartLineItem>) session.getAttribute("shoppingCart") != null) {
+                shoppingCart = (ArrayList<ShoppingCartLineItem>) session.getAttribute("shoppingCart");
+            } else {
+                response.sendRedirect("/IS3102_Project-war/B/SG/shoppingCart.jsp"
+                + "?errMsg=Invalid cart.");
+            }
             
             if (!"".equals(request.getParameter("txtName")) &&
                     request.getParameter("txtName") != null) {
-                name = request.getParameter("txtName");
+                cardName = request.getParameter("txtName");
             } else {
                 response.sendRedirect("/IS3102_Project-war/B/SG/shoppingCart.jsp"
                     + "?errMsg=Please enter a valid name.");
@@ -92,9 +117,11 @@ public class ECommerce_PaymentServlet extends HttpServlet {
                 response.sendRedirect("/IS3102_Project-war/B/SG/shoppingCart.jsp"
                     + "?errMsg=Invalid Year.");
             }
+            
+            Response paymentRow = createRowAtDB(memberID, finalPrice, countryID);
         } catch (Exception ex) {
             response.sendRedirect("/IS3102_Project-war/B/SG/shoppingCart.jsp"
-                    + "?errMsg=" + ex.toString());
+                    + "?errMsg=" + ex.getMessage());
         }
     }
     
@@ -103,6 +130,14 @@ public class ECommerce_PaymentServlet extends HttpServlet {
           return s.matches("-?\\d+(\\.\\d+)?");
         }
 
+    public Response createRowAtDB(long memberId, double amountPaid,
+            long countryId) {
+        return null;
+    }
+    
+    public Response addItemToRowAtDB() {
+        return null;
+    }
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
     /**
      * Handles the HTTP <code>GET</code> method.

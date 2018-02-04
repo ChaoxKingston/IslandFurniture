@@ -9,6 +9,8 @@
         </h1>
         <%
             String memberName = (String) (session.getAttribute("memberName"));
+            long memberID = (long) (session.getAttribute("memberID"));
+            long countryID = (long) (session.getAttribute("countryID"));
             if (memberName == null) {
         %>
         <nav>
