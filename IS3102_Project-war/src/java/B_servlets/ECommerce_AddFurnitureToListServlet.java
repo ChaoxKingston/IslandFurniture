@@ -47,18 +47,33 @@ public class ECommerce_AddFurnitureToListServlet extends HttpServlet {
         HttpSession session = request.getSession();
         
         String category = (String) session.getAttribute("cat");
-        long countryID = (long) session.getAttribute("countryID");
         
         try 
         {
+            long countryID = 0;
+            int quantity = 0;
+            
+            if (session.getAttribute("countryID") != null) {
+                countryID = (long) session.getAttribute("countryID");
+            } else {
+                response.sendRedirect("/B/selectCountry.jsp");
+                return;
+            }
+           
+            if (request.getParameter("SKU").equals("")) {
+                response.sendRedirect("/IS3102_Project-war/B/SG/furnitureCategory.jsp"
+                    + "&errMsg=Incorrect SKU Code.");
+            } 
+            
             String sku = (String) request.getParameter("SKU");
+            quantity = retrieveQuantity(sku);
             // Check if item is avaliable
             // RESTFul API not working, so cannot check stock, just the base code.
-            if(itemAvaliable(sku)) 
+            if(quantity > 0) 
             {
                 ArrayList<ShoppingCartLineItem> shoppingCart;
                 
-                System.out.println("Item is here");
+                System.out.println("Item is here. Amt: " + quantity);
                 // Add item into the cart
                 String memberEmail = (String) session.getAttribute("memberEmail");
                 
@@ -66,46 +81,53 @@ public class ECommerce_AddFurnitureToListServlet extends HttpServlet {
                 ShoppingCartLineItem cartItem = new ShoppingCartLineItem();
                 cartItem.setId(request.getParameter("id"));
                 cartItem.setSKU(sku);
-                cartItem.setName(request.getParameter("name"));
                 cartItem.setPrice(Double.parseDouble(request.getParameter("price")));
+                cartItem.setName(request.getParameter("name"));
                 cartItem.setImageURL(request.getParameter("imageURL"));
                 cartItem.setCountryID(countryID);
             
                 //Check if both of the item and the cart exists
-                if(session.getAttribute("shoppingcart") != null)
+                if(session.getAttribute("shoppingCart") != null)
                 {
                     shoppingCart = (ArrayList<ShoppingCartLineItem>) session.getAttribute("shoppingCart");
                     
                     if (shoppingCart.contains(cartItem)) {
-                        for (int x = 0; x < shoppingCart.size(); x++) {
-                            ShoppingCartLineItem currentItem = shoppingCart.get(x);
+                        // Loop the shopping cart !
+                        for (int i = 0; i < shoppingCart.size(); i++) {
+                            ShoppingCartLineItem currentItem = shoppingCart.get(i);
                             if (currentItem.equals(cartItem)) {
-                                currentItem.setQuantity(currentItem.getQuantity() + 1);
+                                if ((currentItem.getQuantity() + 1) <= quantity) {
+                                    currentItem.setQuantity(currentItem.getQuantity() + 1);
+                                } else {
+                                    response.sendRedirect("/IS3102_Project-war/B/SG/furnitureCategory.jsp"
+                                        + "&errMsg=There is insufficient stock for your request.");
+                                }
                                 break;
                             }
                         }
                     } else {
                         cartItem.setQuantity(1);
                         shoppingCart.add(cartItem);
+                        out.println("hi i am here 2");
                     }
-                    
-                } else 
-                {
-                    //Create shopping cart
+                } else {
+                    // Create the shopping cart
                     shoppingCart = new ArrayList();
-                    //Add the object into the shopping cart
+                    out.println("hi i am here 1");
+                    // Simply add the item to the shopping cart since this is
+                    // the first item
                     cartItem.setQuantity(1);
                     shoppingCart.add(cartItem);
                 }
                 
                 session.setAttribute("shoppingCart", shoppingCart);
                 response.sendRedirect("/IS3102_Project-war/B/SG/shoppingCart.jsp"
-                        +"?goodMsg=" + cartItem.getName() +"has been added into the cart"
-                        + "successfully.");
+                        +"?goodMsg=" + cartItem.getName() +" has been added into the cart"
+                        + " successfully.");
             } else 
             {
                 // If there's no stock, tell the user that there's no stock
-                out.println("There's no more stocks. Stocks: " + itemAvaliable(sku));
+//                out.println("There's no more stocks. Stocks: " + itemAvaliable(sku));
                 response.sendRedirect("/IS3102_Project-war/B/SG/furnitureCategory.jsp"
                 + "?errMsg=" + "There's no more stocks.");
             }
@@ -118,25 +140,41 @@ public class ECommerce_AddFurnitureToListServlet extends HttpServlet {
         }
     }
 
-    // fixed bois actually is storeid wrong xd
-        public boolean itemAvaliable(String sku)
-        {
+//    // fixed bois actually is storeid wrong xd
+//        public boolean itemAvaliable(String sku)
+//        {
+//            Client client = ClientBuilder.newClient();
+//            WebTarget target = client
+//                    .target("http://localhost:8080/IS3102_WebService-Student/webresources/entity.storeentity")
+//                    .path("getQuantity")
+//                    .queryParam("SKU", sku)
+//                    .queryParam("storeID", 59);
+//            
+//            Invocation.Builder invocationBuilder = target.request(MediaType.APPLICATION_JSON);
+//            Response response = invocationBuilder.get();
+//            System.out.println("status: " + response.getStatus());
+//            
+//            String quantityStr = response.readEntity(String.class);
+//            int quantity = Integer.parseInt(quantityStr);
+//            
+//            return quantity > 0;
+//        }
+        
+        public int retrieveQuantity(String sku) {
             Client client = ClientBuilder.newClient();
             WebTarget target = client
                     .target("http://localhost:8080/IS3102_WebService-Student/webresources/entity.storeentity")
                     .path("getQuantity")
-                    .queryParam("SKU", sku)
-                    .queryParam("storeID", 59);
-            
+                    .queryParam("storeID", 59)
+                    .queryParam("SKU", sku);
             Invocation.Builder invocationBuilder = target.request(MediaType.APPLICATION_JSON);
             Response response = invocationBuilder.get();
-            System.out.println("status: " + response.getStatus());
-            
-            String quantityStr = response.readEntity(String.class);
-            int quantity = Integer.parseInt(quantityStr);
-            
-            return quantity > 0;
-        }
+
+            String qtyStr = response.readEntity(String.class);
+            int qty = Integer.parseInt(qtyStr);
+            //System.out.println("status: " + response.getStatus());
+            return qty;
+    }
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
     /**
      * Handles the HTTP <code>GET</code> method.

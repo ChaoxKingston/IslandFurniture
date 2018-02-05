@@ -23,6 +23,10 @@ import javax.servlet.http.HttpSession;
 @WebServlet(name = "ECommerce_MinusFurnitureToListServlet", urlPatterns = {"/ECommerce_MinusFurnitureToListServlet"})
 public class ECommerce_MinusFurnitureToListServlet extends HttpServlet {
 
+    ArrayList<ShoppingCartLineItem> shoppingCart;
+    ShoppingCartLineItem cartItem;
+    int qty = 0;
+    
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
      * methods.
@@ -41,49 +45,58 @@ public class ECommerce_MinusFurnitureToListServlet extends HttpServlet {
         try {
             if(!"".equals(request.getParameter("SKU"))){
                 String sku = request.getParameter("SKU");
-                int quantity = 0;
-                ShoppingCartLineItem cartItem = new ShoppingCartLineItem();
-                
-                // Go through the array list
-                ArrayList<ShoppingCartLineItem> shoppingCart;
+                cartItem = new ShoppingCartLineItem();
                 // Check if shopping cart exists
                 if (session.getAttribute("shoppingCart") != null){
-                    shoppingCart =(ArrayList<ShoppingCartLineItem>)
-                            session.getAttribute("shoppingCart");
-                    
-                    for (ShoppingCartLineItem x : shoppingCart) {
-                        if(x.getSKU().equals(sku)) {
-                            if(x.getQuantity() == 1) {
-                                cartItem.setName(x.getName());
-                                shoppingCart.remove(x);
-                                break;
-                            }
-                            quantity = x.getQuantity() - 1;
-                            x.setQuantity(quantity);
-                            cartItem = x;
-                            break;
-                        }
-                    }
+                    shoppingCart = (ArrayList<ShoppingCartLineItem>) session.getAttribute("shoppingCart");    
+                    // Remove the item from the cart
+                    if (removeItemFromCart(sku)) {
                     session.setAttribute("shoppingCart", shoppingCart);
-                    
-                    if(quantity != 0){
-                        response.sendRedirect("/IS3102_Project-war/B/SG/shoppingCart.jsp"
-                             + "?goodMsg=1 " + cartItem.getName() + " successfully removed from your cart.");
+
+                        // Redirect the user to the cart and display success
+                        if (qty != 0) {
+                            response.sendRedirect("/IS3102_Project-war/B/SG/shoppingCart.jsp"
+                                    + "?goodMsg=1 " + cartItem.getName() 
+                                    + " removed successfully from your cart.");
+                        } else {
+                            response.sendRedirect("/IS3102_Project-war/B/SG/shoppingCart.jsp"
+                                    + "?goodMsg=" + cartItem.getName() 
+                                    + " removed successfully from your cart.");
+                        }
                     } else {
                         response.sendRedirect("/IS3102_Project-war/B/SG/shoppingCart.jsp"
-                             + "?goodMsg=" + cartItem.getName() + " successfully removed from your cart.");
+                                + "?errMsg=Your Shopping Cart is empty..");
                     }
                 }
             } else {
                 response.sendRedirect("/IS3102_Project-war/B/SG/shoppingCart.jsp"
-                    + "?errMsg=Invalid SKU.");            
+                        + "?errMsg=Invalid SKU.");
             }
         } catch (Exception ex) {
-                response.sendRedirect("/IS3102_Project-war/B/SG/shoppingCart.jsp"
+            response.sendRedirect("/IS3102_Project-war/B/SG/shoppingCart.jsp"
                     + "?errMsg=" + ex.toString());
         }
     }
 
+        public boolean removeItemFromCart(String sku) {
+        if (shoppingCart != null) {
+            for (ShoppingCartLineItem i : shoppingCart) {
+                if (i.getSKU().equals(sku)) {
+                    if (i.getQuantity() == 1) {
+                        cartItem.setName(i.getName()); // Need this for Message
+                        shoppingCart.remove(i);
+                        break;
+                    }
+                    qty = i.getQuantity() - 1;
+                    i.setQuantity(qty);
+                    cartItem = i;
+                    break;
+                }
+            }
+            return true;
+        }
+        return false;
+    }
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
     /**
      * Handles the HTTP <code>GET</code> method.

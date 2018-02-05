@@ -23,6 +23,7 @@ import javax.servlet.http.HttpSession;
 @WebServlet(name = "ECommerce_RemoveItemFromListServlet", urlPatterns = {"/ECommerce_RemoveItemFromListServlet"})
 public class ECommerce_RemoveItemFromListServlet extends HttpServlet {
 
+    ArrayList<ShoppingCartLineItem> shoppingCart;
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
      * methods.
@@ -38,31 +39,17 @@ public class ECommerce_RemoveItemFromListServlet extends HttpServlet {
         HttpSession session = request.getSession();
         PrintWriter out = response.getWriter();
         
+        
         try {
             String [] selected = request.getParameterValues("delete");
             // Get the shopping cart
-            ArrayList<ShoppingCartLineItem> shoppingCart;
+            
             
             if(session.getAttribute("shoppingCart") != null) {
                 // Shopping Cart exists
                 shoppingCart = (ArrayList<ShoppingCartLineItem>)
                         session.getAttribute("shoppingCart");
                 
-//                ArrayList<ShoppingCartLineItem> itemsToDelete =
-//                        new ArrayList();
-                
-//                for (ShoppingCartLineItem i : shoppingCart) {
-//                    for (String s : selected) {
-//                        if (s.equals(i.getSKU())) {
-//                           itemsToDelete.add(i);
-//                        }
-//                    }
-//                }
-//                
-//                for (ShoppingCartLineItem x : itemsToDelete) {
-//                    shoppingCart.remove(x);
-//                }
-
                 for (String s : selected) {
                     for (int x = 0; x < shoppingCart.size(); x++){
                         if (shoppingCart.get(x).getSKU().equals(s)){
@@ -75,6 +62,7 @@ public class ECommerce_RemoveItemFromListServlet extends HttpServlet {
                 response.sendRedirect("/IS3102_Project-war/B/SG/shoppingCart.jsp"
                     + "?goodMsg=The selected items have been removed.");
             } else {
+                session.setAttribute("shoppingCart", shoppingCart);
                 response.sendRedirect("/IS3102_Project-war/B/SG/shoppingCart.jsp"
                     + "?errMsg=There is nothing in the cart.");
             }   

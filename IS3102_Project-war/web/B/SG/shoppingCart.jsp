@@ -152,7 +152,7 @@
                                                                     <div class="quantity">
                                                                         <input type="button" class="minus" value="-" onclick="minus('<%=item.getSKU()%>')">
                                                                         <input type="text" disabled="true" class="input-text qty text" title="Qty" value="<%=item.getQuantity()%>" name="quantity" min="1" step="1" id="<%=item.getSKU()%>">
-                                                                        <input type="button" class="plus" value="+" onclick="plus('<%=item.getSKU()%>', item.getName()%>',<%=item.getPrice()%>, '<%=item.getImageURL()%>')">
+                                                                        <input type="button" class="plus" value="+" onclick="plus('<%=item.getSKU()%>', '<%=item.getName()%>',<%=item.getPrice()%>, '<%=item.getImageURL()%>')">
                                                                     </div>
                                                                 </form>
                                                             </td>
