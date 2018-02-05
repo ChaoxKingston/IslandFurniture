@@ -220,7 +220,7 @@
                                                                 <label>Card Number: </label>
                                                             </td>
                                                             <td style="padding: 5px">
-                                                                <input type="text" class="input-text text " title="cardno" name="txtCardNo" required>
+                                                                <input type="text" class="input-text text " title="cardno" name="txtCardNo" maxlength="19" required>
                                                             </td>
                                                         </tr>
                                                         <tr>
@@ -228,7 +228,7 @@
                                                                 <label>CVV/CVC2: </label>
                                                             </td>
                                                             <td style="padding: 5px">
-                                                                <input type="text" class="input-text text " title="securitycode" name="txtSecuritycode" required>
+                                                                <input type="text" class="input-text text " title="securitycode" name="txtSecuritycode" maxlength="3" required>
                                                             </td>
                                                         </tr>
 
@@ -251,7 +251,7 @@
                                                                     <option value="11">November</option>
                                                                     <option value="12">December</option>
                                                                 </select>
-                                                                <input type="text" style="width: 60px" class="input-text text" title="year" id="year" required>(eg: 2015)                                                        
+                                                                <input type="text" style="width: 60px" class="input-text text" title="year" name="year" maxlength="4" required>(eg: 2015)                                                        
                                                             </td>
                                                         </tr>
                                                         <tr>

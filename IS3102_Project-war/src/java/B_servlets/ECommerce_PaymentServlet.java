@@ -49,10 +49,10 @@ public class ECommerce_PaymentServlet extends HttpServlet {
         
         try {
             String cardName = "";
-            String creditNo = "";
+            long creditNo;
             int securityCode;
-            int month; 
-            int year;
+            int month = 0; 
+            int year = 0;
             double finalPrice = 0.0;
             long countryID = 0;
             long memberID = 0;
@@ -79,7 +79,7 @@ public class ECommerce_PaymentServlet extends HttpServlet {
                 response.sendRedirect("/IS3102_Project-war/B/SG/shoppingCart.jsp"
                 + "?errMsg=Invalid cart.");
             }
-            
+            // Check for name
             if (!"".equals(request.getParameter("txtName")) &&
                     request.getParameter("txtName") != null) {
                 cardName = request.getParameter("txtName");
@@ -87,17 +87,26 @@ public class ECommerce_PaymentServlet extends HttpServlet {
                 response.sendRedirect("/IS3102_Project-war/B/SG/shoppingCart.jsp"
                     + "?errMsg=Please enter a valid name.");
             }
-            
-             if (!"".equals(request.getParameter("txtSecuritycode")) &&
+            // Check for card number
+            if (!"".equals(request.getParameter("txtCardNo")) &&
+                    isNumeric(request.getParameter("txtCardNo"))) {
+                    creditNo = Long.parseLong(request.getParameter("txtCardNo")); 
+                } else {
+                    response.sendRedirect("/IS3102_Project-war/B/SG/shoppingCart.jsp"
+                        + "?errMsg=Please enter a valid card number.");
+                    return;
+                }
+            // Check for cvv
+            if (!"".equals(request.getParameter("txtSecuritycode")) &&
                     isNumeric(request.getParameter("txtSecuritycode"))) {
                 securityCode = Integer.parseInt(request.getParameter("txtSecuritycode"));
             } else {
                 response.sendRedirect("/IS3102_Project-war/B/SG/shoppingCart.jsp"
                     + "?errMsg=Please enter a valid CVV/CVV2.");
             }
-             
-            if (isNumeric(request.getParameter("month"))) {
-                month = Integer.parseInt(request.getParameter("month"));
+             // Check for Month
+            if (isNumeric(request.getParameter("Month"))) {
+                month = Integer.parseInt(request.getParameter("Month"));
                 
                 if (month < 0 || month > 12) {
                 response.sendRedirect("/IS3102_Project-war/B/SG/shoppingCart.jsp"
@@ -107,27 +116,30 @@ public class ECommerce_PaymentServlet extends HttpServlet {
                 response.sendRedirect("/IS3102_Project-war/B/SG/shoppingCart.jsp"
                     + "?errMsg=Invalid Month.");
             }
-            
+            //Check for year
             if (!request.getParameter("year").equals("") && 
                     isNumeric(request.getParameter("year"))) {
-                // Regex crap for year
-                // https://stackoverflow.com/questions/44601979/regex-to-check-if-string-contains-year
                 if (Pattern.compile("^(19|20)[0-9][0-9]") 
                         .matcher(request.getParameter("year")).matches()) {
-                    // If the year is proper, set it
                     year = Integer.parseInt(request.getParameter("year"));
                 } else {
                     response.sendRedirect("/IS3102_Project-war/B/SG/shoppingCart.jsp"
-                        + "?errMsg=Invalid Year Format (yyyy).");
+                        + "?errMsg=Invalid Year Format.");
+                    return;
                 }
             } else {
                 response.sendRedirect("/IS3102_Project-war/B/SG/shoppingCart.jsp"
                     + "?errMsg=Invalid Year.");
+                return;
             }
+            
+            out.println("before for loop");
             
             for (ShoppingCartLineItem i : shoppingCart) {
                 finalPrice += (i.getPrice() * i.getQuantity()); 
             }
+            
+            out.println("Yo if it reaches here means we gucci");
             
             Response paymentRow = createRowAtDB(memberID, finalPrice, countryID);
             
@@ -136,20 +148,12 @@ public class ECommerce_PaymentServlet extends HttpServlet {
                 
                 // link to sales record
                 for (ShoppingCartLineItem item : shoppingCart) {
+                    out.println("testing" + item.getName());
                     Response res = addItemToRowAtDB(salesRecordID,item);
                     
                     if (res.getStatus() != 200) {
                         response.sendRedirect("/IS3102_Project-war/B/SG/shoppingCart.jsp"
-                            + "?errMsg=" + res.readEntity(String.class));
-                        return;
-                    }
-                    
-                    long itementityId = Long.parseLong(res.readEntity(String.class));
-                    Response lineItemMemberResp = bindItemToMemberAtDB(itementityId, memberID);
-                    
-                    if (lineItemMemberResp.getStatus() != 200){
-                        response.sendRedirect("/IS3102_Project-war/B/SG/shoppingCart.jsp"
-                            + "?errMsg=" + lineItemMemberResp.readEntity(String.class));
+                            + "?errMsg=" + res.readEntity(String.class)+ "hello");
                         return;
                     }
                 }
@@ -157,13 +161,27 @@ public class ECommerce_PaymentServlet extends HttpServlet {
                 session.setAttribute("shoppingCart",
                         new ArrayList<>());
                 session.setAttribute("transcationId", salesRecordID);
+                
+                Response info = retrieveStoreInfo();
+                String information = info.readEntity(String.class);
+                
+                 if (info.getStatus() == 200) {
+                    // Now begin propogating back to the shopping cart.
+                    response.sendRedirect("/IS3102_Project-war/B/SG/shoppingCart.jsp"
+                                + "?goodMsg="
+                                + "Transaction complete. "
+                                + "Your items will be at: " 
+                                + information
+                    );
+                } else {
                 response.sendRedirect("/IS3102_Project-war/B/SG/shoppingCart.jsp"
-                            + "?goodMsg=Transaction complete.");
+                    + "?errMsg=Unable to retrieve collection address information.");
+                    return;
+                }
             } else {
                 out.println(paymentRow.readEntity(String.class));
             }
         } catch (Exception ex) {
-            ex.printStackTrace();
             response.sendRedirect("/IS3102_Project-war/B/SG/shoppingCart.jsp"
                     + "?errMsg=" + ex.getMessage());
         }
@@ -200,18 +218,28 @@ public class ECommerce_PaymentServlet extends HttpServlet {
         
         return invocationBuilder.put(Entity.entity(item, MediaType.APPLICATION_JSON));
     }
-    
-        public Response bindItemToMemberAtDB(long lineitementityId, 
-            long memberId) {
-        Client client = ClientBuilder.newClient();
-        WebTarget target = client
-                .target("http://localhost:8080/IS3102_WebService-Student/webresources/entity.memberentity")
-                .path("createECommerceLineItemRecord")
-                .queryParam("memberId", memberId);
+
+//        public Response bindItemToMemberAtDB(long lineitementityId, 
+//            long memberId) {
+//        Client client = ClientBuilder.newClient();
+//        WebTarget target = client
+//                .target("http://localhost:8080/IS3102_WebService-Student/webresources/entity.memberentity")
+//                .path("createECommerceLineItemRecord")
+//                .queryParam("memberId", memberId);
+//        
+//        Invocation.Builder invocationBuilder = target.request(MediaType.APPLICATION_JSON);
+//        return invocationBuilder.put(Entity.entity(String.valueOf(lineitementityId), MediaType.APPLICATION_JSON));
+//    }
         
-        Invocation.Builder invocationBuilder = target.request(MediaType.APPLICATION_JSON);
-        
-        return invocationBuilder.put(Entity.entity(String.valueOf(lineitementityId), MediaType.APPLICATION_JSON));
+        public Response retrieveStoreInfo() {
+            Client client = ClientBuilder.newClient();
+            WebTarget target = client
+                    .target("http://localhost:8080/IS3102_WebService-Student/webresources/entity.storeentity")
+                    .path("getAddress")
+                    .queryParam("storeID", 59);
+
+            Invocation.Builder invocationBuilder = target.request(MediaType.APPLICATION_JSON);
+            return invocationBuilder.get();
     }
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
     /**
